@@ -45,6 +45,14 @@ canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 /* HUD */
 #hud{position:fixed;inset:0;pointer-events:none;z-index:9}
 body.freecam canvas{cursor:default}
+/* v58: multiplayer */
+.mpmenu{width:min(520px,94vw);min-width:0}.mpbox{display:flex;flex-direction:column;gap:8px}
+.mpcode{font:800 40px/1.1 var(--ui);letter-spacing:.22em;text-align:center;padding:12px 0;background:#fff;border:2px solid #1d1d1d;color:#1d1d1d;user-select:all}
+.mplab{font-size:12px;font-weight:700;color:#55534a;text-align:center;letter-spacing:.08em}.mpstatus{font-size:13px;text-align:center;color:#55534a;min-height:16px}
+.mpcodein{text-transform:uppercase;letter-spacing:.18em}#mpRecent{display:flex;flex-direction:column;gap:6px;max-height:180px;overflow:auto}
+#pMP{display:flex;flex-direction:column;gap:6px}#pMP.hidden{display:none}.mpline{font-size:13px;text-align:center;color:#3d3d3d}.mpline b{letter-spacing:.15em}
+#pPlayers{display:flex;flex-direction:column;gap:3px;max-height:120px;overflow:auto}.mprow{font-size:13px;background:#fff;border:2px solid #1d1d1d;padding:4px 8px;color:#2a2a2a}
+body.dark .mpcode,body.dark .mprow{background:#2c2e34;border-color:#0f1013;color:#f0f0ee}body.dark .mplab,body.dark .mpstatus,body.dark .mpline{color:#d8d6cc}
 /* v57: world list + create world */
 #wPanel{width:min(520px,94vw);min-width:0;padding:16px 18px;gap:10px}
 #wList{display:flex;flex-direction:column;gap:6px;max-height:min(38vh,300px);overflow:auto;padding:2px}
@@ -418,11 +426,11 @@ body.dark #allItems #aiClose{background:#2c2e34;border-color:#0f1013;color:#f0f0
     <div id="wPanel" class="menu mc">
       <h2>Worlds</h2>
       <div id="wList"></div>
-      <div class="wbtns"><button class="mcbtn" id="mPlay">Play</button><button class="mcbtn" id="mCreate">Create New World</button></div>
+      <div class="wbtns"><button class="mcbtn" id="mPlay">Play</button><button class="mcbtn" id="mCreate">Create New World</button><button class="mcbtn" id="mMulti">Multiplayer</button></div>
       <div class="wbtns"><button class="mcbtn small" id="mRename">Rename</button><button class="mcbtn small danger" id="mDelete">Delete</button><button class="mcbtn small" id="mSettings">Settings</button><button class="mcbtn small" id="mHelp">Guide</button></div>
     </div>
   </div>
-  <div class="ver">Luminout v57 · endless plains</div>
+  <div class="ver">Luminout v58 · endless plains</div>
 </div>
 
 <!-- v57: create world -->
@@ -433,6 +441,37 @@ body.dark #allItems #aiClose{background:#2c2e34;border-color:#0f1013;color:#f0f0
     <div class="cw-row"><label for="cSeed">Seed</label><div class="seedbox"><input id="cSeed" class="cw-in" maxlength="24" autocomplete="off"><button class="mcbtn small" id="cRand">Random</button></div></div>
     <div id="cOpts"></div>
     <div class="wbtns"><button class="mcbtn" id="cGo">Create World</button><button class="mcbtn" id="cCancel">Cancel</button></div>
+  </div>
+</div>
+
+<!-- v58: multiplayer -->
+<div id="mp" class="ov hidden">
+  <div class="menu mc mpmenu">
+    <h2>Multiplayer</h2>
+    <div class="cw-row"><label for="mpName">Your name</label><input id="mpName" class="cw-in" maxlength="16" autocomplete="off"></div>
+    <div class="seg"><button class="mcbtn small on" id="mpTabHost">Host Server</button><button class="mcbtn small" id="mpTabJoin">Join Server</button></div>
+    <div id="mpHostBox" class="mpbox">
+      <div class="cw-row"><label for="mpWorld">World</label><select id="mpWorld" class="cw-in"></select></div>
+      <div class="cw-row"><label for="mpSrv">Server name</label><input id="mpSrv" class="cw-in" maxlength="24" autocomplete="off"></div>
+      <div class="cw-row"><label>Max players</label><div class="seg" id="mpMax"><button class="mcbtn small" data-n="2">2</button><button class="mcbtn small on" data-n="4">4</button><button class="mcbtn small" data-n="6">6</button><button class="mcbtn small" data-n="8">8</button></div></div>
+      <div class="wbtns"><button class="mcbtn" id="mpStart">Start Server</button></div>
+    </div>
+    <div id="mpJoinBox" class="mpbox hidden">
+      <div class="cw-row"><label for="mpCodeIn">Code</label><input id="mpCodeIn" class="cw-in mpcodein" maxlength="8" autocomplete="off"></div>
+      <div class="wbtns"><button class="mcbtn" id="mpConnect">Join</button></div>
+      <div id="mpRecentBox"><div class="mplab">Recent servers</div><div id="mpRecent"></div></div>
+    </div>
+    <div id="mpStatus" class="mpstatus"></div>
+    <div class="wbtns"><button class="mcbtn" id="mpBack">Back</button></div>
+  </div>
+</div>
+<div id="mpCode" class="ov hidden">
+  <div class="menu mc mpmenu">
+    <h2 id="mpSrvName">Server</h2>
+    <div class="mplab">Join code</div>
+    <div class="mpcode" id="mpCodeTxt"></div>
+    <div class="wbtns"><button class="mcbtn" id="mpCopy">Copy Code</button><button class="mcbtn" id="mpEnter">Enter World</button></div>
+    <div class="wbtns"><button class="mcbtn small danger" id="mpStop">Stop Server</button></div>
   </div>
 </div>
 
@@ -449,6 +488,7 @@ body.dark #allItems #aiClose{background:#2c2e34;border-color:#0f1013;color:#f0f0
 <div id="pause" class="ov hidden">
   <div class="menu mc">
     <h2>Paused</h2>
+    <div id="pMP" class="hidden"><div class="mpline"><span id="pSrv"></span> · <b id="pCode"></b> <button class="mcbtn small" id="pCopy">Copy</button></div><div id="pPlayers"></div></div>
     <button class="mcbtn" id="pResume">Back to Game</button>
     <button class="mcbtn" id="pSettings">Settings</button>
     <button class="mcbtn" id="pHelp">Guide</button>
@@ -731,7 +771,7 @@ const inChunk=(x,y,z)=>y>=0&&y<H&&isLoaded(x>>4,z>>4);
 function getB(x,y,z){ if(y<0||y>=H||!isLoaded(x>>4,z>>4)) return AIR; return blocks[idx(x,y,z)]; }
 let GEN=false;
 const canopies=new Set(); // storage indices of placed big-canopy blocks (they reach into neighbour cells)
-const setB=(x,y,z,v)=>{ if(inChunk(x,y,z)){ const i=idx(x,y,z); if(blocks[i]===CANOPY) canopies.delete(i); blocks[i]=v; if(v===CANOPY) canopies.add(i); if(!GEN) slotMod[slotOf(x>>4,z>>4)]=1; } };
+const setB=(x,y,z,v)=>{ if(inChunk(x,y,z)){ const i=idx(x,y,z); if(blocks[i]===CANOPY) canopies.delete(i); blocks[i]=v; if(v===CANOPY) canopies.add(i); if(!GEN){ slotMod[slotOf(x>>4,z>>4)]=1; if(MP&&MP.on&&!MP.applying) mpLocalSet(x,y,z,v); /* v58: replicate edits online */ } } };
 function rescanCanopies(){}
 const cellOf=i=>{ const sx=i&255, sz=(i>>8)&255, s=slotOf(sx>>4,sz>>4); return [slotCX[s]*CS+(sx&15),Math.floor(i/65536),slotCZ[s]*CS+(sz&15)]; }; // storage index → world coords
 const canopyBox=i=>{ const [x,y,z]=cellOf(i), q=SHAPES.canopy.boxes[0]; return [x+q[0],y+q[1],z+q[2],x+q[3],y+q[4],z+q[5]]; };
@@ -1467,14 +1507,14 @@ function toggleShiftLock(){ if(!S.shiftLock){ toast('Shift Lock is disabled in S
   if(shiftLock) P.bodyYaw=P.yaw; toast(shiftLock?'Shift Lock: on':'Shift Lock: off',900); updateLockUI(); syncLock(); }
 $('tLock').addEventListener('click',e=>{ e.stopPropagation(); if(state==='play') toggleShiftLock(); });
 
-function openPause(){ if(state!=='play') return; state='pause'; mouseL=mouseR=false; resetMove(); $('pause').classList.remove('hidden'); $('clickHint').classList.add('hidden'); saveWorld(); }
+function openPause(){ if(state!=='play') return; state='pause'; mouseL=mouseR=false; resetMove(); $('pause').classList.remove('hidden'); $('clickHint').classList.add('hidden'); saveWorld(); mpRenderPause(); }
 function hidePause(){ $('pause').classList.add('hidden'); $('settings').classList.add('hidden'); $('help').classList.add('hidden'); state='play'; }
 function resume(){ hidePause(); if(!isTouch) lock(); }
 $('pResume').addEventListener('click',resume);
 $('tMenu').addEventListener('click',e=>{ e.stopPropagation(); if(state==='play'){ if(invOpen) toggleInv(false); openPause(); } else if(state==='pause') resume(); });
 let resetArm=false; $('pReset').addEventListener('click',()=>{ if(!resetArm){ resetArm=true; $('pReset').textContent='Sure? Click again'; setTimeout(()=>{ resetArm=false; $('pReset').textContent='Reset World'; },3000); return; }
   resetArm=false; $('pReset').textContent='Reset World'; ls.del(WKEY); newWorld(undefined,Object.assign({},GOPT)); saveWorld(); toast('World reset. Empty again.',2000); resume(); });
-$('pTitle').addEventListener('click',()=>{ saveWorld(); $('pause').classList.add('hidden'); toTitle(); });
+$('pTitle').addEventListener('click',()=>{ saveWorld(); mpLeave(); $('pause').classList.add('hidden'); toTitle(); });
 const SET=[
   {k:'sens',l:'Mouse Sensitivity',min:10,max:300,u:'%'},{k:'tsens',l:'Touch Sensitivity',min:10,max:300,u:'%'},
   {k:'fov',l:'Field of View',min:50,max:110,u:'°'},{k:'fog',l:'Fog Distance',min:20,max:320,u:''},{k:'scale',l:'Render Quality',min:40,max:100,u:'%'},
@@ -1528,7 +1568,7 @@ function openCreate(){ cGo=Object.assign({},GOPT_DEF); $('cName').value='World '
     for(const [n,v] of d.o){ const b=document.createElement('button'); b.className='mcbtn small'+(cGo[d.k]===v?' on':''); b.textContent=n; b.addEventListener('click',()=>{ cGo[d.k]=v; seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); }); seg.appendChild(b); }
     row.append(lb,seg); box.appendChild(row); }
   $('create').classList.remove('hidden'); }
-let dlgFn=null; function dialog(title,input,okText,danger,fn){ $('dTitle').textContent=title; $('dInput').classList.toggle('hidden',input===null); if(input!==null) $('dInput').value=input; $('dOk').textContent=okText; $('dOk').classList.toggle('danger',!!danger); dlgFn=fn; $('wdlg').classList.remove('hidden'); if(input!==null) setTimeout(()=>{ $('dInput').focus(); $('dInput').select(); },0); }
+let dlgFn=null; function dialog(title,input,okText,danger,fn){ $('dTitle').textContent=title; $('dInput').classList.toggle('hidden',input===null); if(input!==null) $('dInput').value=input; $('dOk').textContent=okText; $('dOk').classList.toggle('danger',!!danger); dlgFn=fn; $('dCancel').classList.remove('hidden'); $('wdlg').classList.remove('hidden'); if(input!==null) setTimeout(()=>{ $('dInput').focus(); $('dInput').select(); },0); }
 $('dOk').addEventListener('click',()=>{ $('wdlg').classList.add('hidden'); const f=dlgFn; dlgFn=null; if(f) f($('dInput').value); }); $('dCancel').addEventListener('click',()=>{ $('wdlg').classList.add('hidden'); dlgFn=null; });
 $('dInput').addEventListener('keydown',e=>{ e.stopPropagation(); if(e.key==='Enter') $('dOk').click(); });
 $('mPlay').addEventListener('click',()=>{ loadIdx(); if(!worlds.length) createWorld('World 1',String((Math.random()*1e9)|0),GOPT_DEF); else playSel(); });
@@ -1706,7 +1746,7 @@ function raycastCells(o,d,maxD){
 }
 const lookDir=(yaw,pitch)=>{ const cp=Math.cos(pitch); return new THREE.Vector3(-Math.sin(yaw)*cp,Math.sin(pitch),-Math.cos(yaw)*cp); };
 
-function swing(kind){ /* v46: Actions & Stuff-style swings — mining: wind-up → strike → follow-through; place/use: one quick, smaller swing */ if(swingT<0.95&&kind!=='place') return; swingK=kind||'hit'; swingT=0; }
+function swing(kind){ if(MP&&MP.on&&(swingT>=0.95||kind==='place')) mpSwing(); /* v58 */ /* v46: Actions & Stuff-style swings — mining: wind-up → strike → follow-through; place/use: one quick, smaller swing */ if(swingT<0.95&&kind!=='place') return; swingK=kind||'hit'; swingT=0; }
 function usePlaceOnly(){ if(!controlActive()) return; tryPlace(true,true); placeCD=5; }
 function useOpen(){ if(!controlActive()||!target||target.b!==CHEST||P.crouch) return false; openChest(target.x,target.y,target.z); return true; }
 function usePress(){ if(!controlActive()) return; tryPlace(true); placeCD=5; }
@@ -1782,11 +1822,108 @@ function tick(){
   const use=controlActive()&&(mouseR||mPlace);
   if(use){ if(placeCD>0) placeCD--; if(placeCD===0){ tryPlace(); placeCD=5; } } else placeCD=0;
 }
+// ---- v58: multiplayer. Everything here is inert until a server is hosted or joined (MP.on), so singleplayer is unchanged.
+var MP={on:false,host:false,ready:false,code:'',srvName:'',peer:null,conns:new Map(),hostConn:null,remote:new Map(),applying:false,me:'',max:4,sendT:0,pending:[],names:new Map()};
+const MP_PREFIX='luminout-v58-', MP_NAMEKEY='luminout.mpname', MP_RECENT='luminout.mprecent';
+function loadPeerJS(){ return window.Peer?Promise.resolve():new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js'; s.onload=()=>res(); s.onerror=()=>rej(new Error('Could not load the network library')); document.head.appendChild(s); }); }
+const mkCode=()=>{ const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s+=A[Math.floor(Math.random()*A.length)]; return s; };
+const mpName=()=>(($('mpName')&&$('mpName').value)||ls.get(MP_NAMEKEY)||'Player').trim().slice(0,16)||'Player';
+function mpSend(m,except){ if(!MP.on) return; if(MP.host){ for(const [id,c] of MP.conns) if(id!==except&&c.open&&c.__ok) try{ c.send(m); }catch(_){} } else if(MP.hostConn&&MP.hostConn.open) try{ MP.hostConn.send(m); }catch(_){} }
+// block edits
+function mpEditUnloaded(x,y,z,v){ const cx=x>>4, cz=z>>4, key=ckey(cx,cz); let u=modStore.get(key);
+  if(!u){ const s=slotOf(cx,cz), back=slotCX[s]!==NOSLOT?chunkBytes(slotCX[s],slotCZ[s]):null; const g0=GEN; GEN=true; genChunk(cx,cz); GEN=g0; u=chunkBytes(cx,cz);
+    if(back){ let k=0; for(let yy=0;yy<H;yy++)for(let zz=0;zz<CS;zz++)for(let xx=0;xx<CS;xx++) blocks[idx(cx*CS+xx,yy,cz*CS+zz)]=back[k++]; } modStore.set(key,u); }
+  u[y*256+(z&15)*16+(x&15)]=v; }
+function mpApplySet(x,y,z,v){ if(y<0||y>=H) return; MP.applying=true; try{ if(isLoaded(x>>4,z>>4)){ setB(x,y,z,v); rebuildAt(x,z); } else mpEditUnloaded(x,y,z,v); } finally{ MP.applying=false; } dirty=true; }
+function mpLocalSet(x,y,z,v){ mpSend({t:'set',x,y,z,v}); }
+// remote players
+function nameSprite(name){ const c=document.createElement('canvas'); c.width=256; c.height=64; const g=c.getContext('2d'); g.font='600 30px system-ui,sans-serif'; const w=Math.min(248,g.measureText(name).width+28);
+  g.fillStyle='rgba(30,30,34,.72)'; g.fillRect((256-w)/2,10,w,44); g.fillStyle='#fff'; g.textAlign='center'; g.textBaseline='middle'; g.fillText(name,128,33);
+  const t=new THREE.CanvasTexture(c); t.colorSpace=THREE.SRGBColorSpace; const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false,toneMapped:false})); s.scale.set(1.6,0.4,1); s.renderOrder=5; return s; }
+function mpAvatar(id,name){ let a=MP.remote.get(id); if(a){ if(name&&a.name!==name){ a.c.root.remove(a.tag); a.tag=nameSprite(name); a.tag.position.y=2.2; a.c.root.add(a.tag); a.name=name; } return a; }
+  const c=makeCharacter(); c.held.visible=false; c.root.visible=false; scene.add(c.root); const tag=nameSprite(name||'Player'); tag.position.y=2.2; c.root.add(tag);
+  a={id,c,tag,name:name||'Player',t:null,ph:0,sw:0,cr:0,h:0,seen:false}; MP.remote.set(id,a); return a; }
+function mpDropAvatar(id){ const a=MP.remote.get(id); if(!a) return; scene.remove(a.c.root); MP.remote.delete(id); }
+function mpState(a,m){ a.t=m; if(!a.seen){ a.seen=true; a.c.root.position.set(m.x,m.y,m.z); a.c.root.rotation.y=m.ry; a.c.root.visible=true; }
+  if(m.h!==a.h){ a.h=m.h; if(m.h&&BL[m.h]){ a.c.held.geometry=blockGeo(m.h); a.c.held.material=matFor(m.h); a.c.held.visible=true; } else a.c.held.visible=false; } }
+function mpAnimate(dt){ for(const a of MP.remote.values()){ const m=a.t; if(!m) continue; const r=a.c.root, k=Math.min(1,dt*12), ox=r.position.x, oz=r.position.z;
+    r.position.x+=(m.x-r.position.x)*k; r.position.y+=(m.y-r.position.y)*k; r.position.z+=(m.z-r.position.z)*k; let d=m.ry-r.rotation.y; d=Math.atan2(Math.sin(d),Math.cos(d)); r.rotation.y+=d*k;
+    const sp=Math.hypot(r.position.x-ox,r.position.z-oz)/Math.max(dt,1e-3), amt=Math.min(1,sp/4); a.ph+=sp*dt*2.6; a.cr+=((m.cr?1:0)-a.cr)*Math.min(1,dt*10); a.sw=Math.max(0,a.sw-dt*3.2);
+    const sl=Math.sin(a.ph)*0.75*amt; a.c.legs[0].rotation.x=sl-0.55*a.cr; a.c.legs[1].rotation.x=-sl-0.55*a.cr; a.c.legs.forEach(l=>{ l.userData.knee.rotation.x=1.1*a.cr; });
+    a.c.body.position.y=-0.2*a.cr; a.c.arms[0].rotation.x=-sl*0.7+0.22*a.cr; a.c.arms[1].rotation.x=sl*0.7+0.22*a.cr+Math.sin((1-a.sw)*Math.PI)*(a.sw>0?1.45:0);
+    const ey=clamp(m.pi/1.2,-1,1)*0.2; a.c.eyes.forEach(e=>{ e.position.y=0.36+ey; }); } }
+function mpTick(dt){ mpAnimate(dt); if(state==='title') return; MP.sendT-=dt; if(MP.sendT>0) return; MP.sendT=0.1; if(MP.host&&!MP.ready) return;
+  const it=inv[sel]; const m={t:'st',id:MP.me,x:+ch.root.position.x.toFixed(3),y:+ch.root.position.y.toFixed(3),z:+ch.root.position.z.toFixed(3),ry:+ch.root.rotation.y.toFixed(3),pi:+P.pitch.toFixed(3),cr:P.crouch?1:0,h:it?it.id:0}; mpSend(m); }
+function mpSwing(){ if(MP.on) mpSend({t:'sw',id:MP.me}); }
+// host
+function mpPlayers(){ const l=[{id:MP.host?MP.me:'host',name:MP.host?mpName():(MP.names.get('host')||'Host')}]; if(MP.host) for(const [id,c] of MP.conns) if(c.__ok) l.push({id,name:c.__name}); return l; }
+function mpWelcome(c){ c.__ok=true; c.send({t:'welcome',id:c.peer,srv:MP.srvName,seed:SEED,go:Object.assign({},GOPT),mods:allMods(),p:[P.pos.x+1.2,P.pos.y,P.pos.z+1.2],players:mpPlayers()}); mpSend({t:'pl',players:mpPlayers()}); mpRenderPause(); }
+function mpHostConn(c){ c.on('data',m=>{ if(!m||typeof m!=='object') return;
+    if(m.t==='hello'){ const n=[...MP.conns.values()].filter(x=>x.__ok||x.__wait).length; if(n>=MP.max-1){ try{ c.send({t:'full'}); }catch(_){} setTimeout(()=>c.close(),300); return; }
+      c.__name=String(m.name||'Player').slice(0,16); MP.conns.set(c.peer,c); mpAvatar(c.peer,c.__name); if(MP.ready) mpWelcome(c); else { c.__wait=true; MP.pending.push(c); } return; }
+    if(!c.__ok) return;
+    if(m.t==='st'){ m.id=c.peer; mpState(mpAvatar(c.peer,c.__name),m); mpSend(m,c.peer); }
+    else if(m.t==='set'){ mpApplySet(m.x|0,m.y|0,m.z|0,m.v|0); mpSend({t:'set',x:m.x|0,y:m.y|0,z:m.z|0,v:m.v|0},c.peer); }
+    else if(m.t==='sw'){ const a=MP.remote.get(c.peer); if(a) a.sw=1; mpSend({t:'sw',id:c.peer},c.peer); } });
+  const gone=()=>{ if(!MP.conns.has(c.peer)) return; MP.conns.delete(c.peer); mpDropAvatar(c.peer); mpSend({t:'leave',id:c.peer}); mpSend({t:'pl',players:mpPlayers()}); mpRenderPause(); if(state!=='title'&&c.__ok) toast((c.__name||'Player')+' left',1600); };
+  c.on('close',gone); c.on('error',gone); }
+async function mpHostStart(srvName,max){ await loadPeerJS(); const code=mkCode(); const peer=new Peer(MP_PREFIX+code,{debug:0});
+  await new Promise((res,rej)=>{ const to=setTimeout(()=>rej(new Error('No answer from the server broker')),15000); peer.on('open',()=>{ clearTimeout(to); res(); }); peer.on('error',e=>{ clearTimeout(to); rej(e); }); });
+  Object.assign(MP,{on:true,host:true,ready:false,code,srvName:srvName||'Server',peer,max,me:'host',pending:[]}); MP.conns.clear();
+  peer.on('connection',c=>{ MP.inConns=(MP.inConns||0)+1; mpHostConn(c); }); peer.on('disconnected',()=>{ try{ peer.reconnect(); }catch(_){} }); return code; }
+function mpHostReady(){ MP.ready=true; for(const c of MP.pending.splice(0)) if(c.open&&MP.conns.has(c.peer)){ c.__wait=false; mpWelcome(c); } }
+// guest
+async function mpJoin(code,name){ await loadPeerJS(); code=code.trim().toUpperCase(); const peer=new Peer(undefined,{debug:0});
+  await new Promise((res,rej)=>{ const to=setTimeout(()=>rej(new Error('No answer from the server broker')),15000); peer.on('open',()=>{ clearTimeout(to); res(); }); peer.on('error',e=>{ clearTimeout(to); rej(e); }); });
+  return new Promise((res,rej)=>{ let done=false; const fail=msg=>{ if(done) return; done=true; try{ peer.destroy(); }catch(_){} rej(new Error(msg)); };
+    const to=setTimeout(()=>fail('Server not found'),15000); peer.on('error',e=>fail(e&&e.type==='peer-unavailable'?'Server not found':'Connection failed'));
+    const c=peer.connect(MP_PREFIX+code,{reliable:true}); c.on('open',()=>c.send({t:'hello',name}));
+    c.on('data',m=>{ if(!m||typeof m!=='object') return;
+      if(m.t==='full'){ clearTimeout(to); fail('Server is full'); return; }
+      if(m.t==='welcome'){ clearTimeout(to); done=true; Object.assign(MP,{on:true,host:false,ready:true,code,srvName:m.srv||'Server',peer,hostConn:c,me:m.id}); for(const p of m.players||[]){ MP.names.set(p.id,p.name); if(p.id!==m.id) mpAvatar(p.id,p.name); } res(m); return; }
+      if(!MP.on) return;
+      if(m.t==='st'){ if(m.id!==MP.me) mpState(mpAvatar(m.id,MP.names.get(m.id)),m); }
+      else if(m.t==='set') mpApplySet(m.x,m.y,m.z,m.v);
+      else if(m.t==='sw'){ const a=MP.remote.get(m.id); if(a) a.sw=1; }
+      else if(m.t==='leave'){ mpDropAvatar(m.id); }
+      else if(m.t==='pl'){ for(const p of m.players){ MP.names.set(p.id,p.name); if(p.id!==MP.me){ const had=MP.remote.has(p.id); mpAvatar(p.id,p.name); if(!had) toast(p.name+' joined',1600); } } mpRenderPause(); } });
+    c.on('close',()=>{ if(done&&MP.on&&!MP.host) mpLost('The host closed the server'); else fail('Connection closed'); }); }); }
+function mpGuestEnter(m){ const key='luminout.guest.'+m.seed; let d=null; try{ d=JSON.parse(ls.get(key)||'null'); }catch(_){}
+  if(!d||d.v!==8) d={v:8,bpv:2,grant41:1,grant42:1,e50:1,inv:[],pinv:[],eq:[],cin:null,sel:0,p:[m.p[0],m.p[1],m.p[2],SPAWN.yaw,SPAWN.pitch],stats:{},view:0};
+  Object.assign(d,{seed:m.seed,go:m.go||{},flat:0,mods:m.mods||[],chests:[],grant41:1,grant42:1}); ls.set(key,JSON.stringify(d)); WKEY=key; startGame(false); }
+function mpLeave(){ if(!MP.on&&!MP.peer) return; const peer=MP.peer; MP.on=false; MP.ready=false; for(const id of [...MP.remote.keys()]) mpDropAvatar(id); MP.conns.clear(); MP.hostConn=null; MP.peer=null; MP.names.clear(); try{ peer&&peer.destroy(); }catch(_){} mpRenderPause(); }
+function mpLost(msg){ const wasGuest=!MP.host; mpLeave(); if(state!=='title'){ if(wasGuest) saveWorld(); hidePause(); toTitle(); } dialog(msg,null,'OK',false,null); $('dCancel').classList.add('hidden'); }
+// pause-menu block (code + players)
+function mpRenderPause(){ const box=$('pMP'); if(!box) return; box.classList.toggle('hidden',!MP.on); $('pReset').classList.toggle('hidden',MP.on); if(!MP.on) return;
+  $('pCode').textContent=MP.code; $('pSrv').textContent=MP.srvName; const L=$('pPlayers'); L.innerHTML=''; for(const p of (MP.host?mpPlayers():[...MP.names].map(([id,name])=>({id,name})))){ const r=document.createElement('div'); r.className='mprow'; r.textContent=p.name+(p.id===MP.me?' (you)':p.id==='host'?' (host)':''); L.appendChild(r); } }
+function copyText(t){ try{ navigator.clipboard.writeText(t).then(()=>toast('Code copied',1200),()=>toast(t,2500)); }catch(_){ toast(t,2500); } }
+// menu
+function mpRecent(){ try{ return JSON.parse(ls.get(MP_RECENT)||'[]')||[]; }catch(_){ return []; } }
+function mpRenderMenu(){ $('mpName').value=ls.get(MP_NAMEKEY)||('Player'+Math.floor(100+Math.random()*900)); loadIdx(); const sel=$('mpWorld'); sel.innerHTML=''; for(const w of worlds){ const o=document.createElement('option'); o.value=w.id; o.textContent=w.name||'World'; sel.appendChild(o); }
+  const o=document.createElement('option'); o.value='__new'; o.textContent='New World'; sel.appendChild(o); if(selW) sel.value=selW;
+  const R=$('mpRecent'); R.innerHTML=''; const rec=mpRecent(); $('mpRecentBox').classList.toggle('hidden',!rec.length); for(const r of rec){ const d=document.createElement('div'); d.className='wrow'; d.innerHTML='<div class="wname"></div><div class="wmeta"></div>'; d.querySelector('.wname').textContent=r.name||'Server'; d.querySelector('.wmeta').textContent=r.code+' · '+fmtWhen(r.t); d.addEventListener('click',()=>{ $('mpCodeIn').value=r.code; }); R.appendChild(d); }
+  $('mpStatus').textContent=''; }
+let mpMax=4;
+function mpTab(h){ $('mpTabHost').classList.toggle('on',h); $('mpTabJoin').classList.toggle('on',!h); $('mpHostBox').classList.toggle('hidden',!h); $('mpJoinBox').classList.toggle('hidden',h); $('mpStatus').textContent=''; }
+$('mMulti').addEventListener('click',()=>{ initAudio(); mpRenderMenu(); mpTab(true); $('mp').classList.remove('hidden'); });
+$('mpTabHost').addEventListener('click',()=>mpTab(true)); $('mpTabJoin').addEventListener('click',()=>mpTab(false)); $('mpBack').addEventListener('click',()=>$('mp').classList.add('hidden'));
+$('mpMax').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ mpMax=+b.dataset.n; $('mpMax').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); }));
+['mpName','mpSrv','mpCodeIn'].forEach(i=>$(i).addEventListener('keydown',e=>e.stopPropagation()));
+let mpBusy=false;
+$('mpStart').addEventListener('click',async()=>{ if(mpBusy) return; mpBusy=true; ls.set(MP_NAMEKEY,mpName()); $('mpStatus').textContent='Starting…';
+  try{ const code=await mpHostStart($('mpSrv').value.trim()||(mpName()+"'s server"),mpMax); $('mp').classList.add('hidden'); $('mpSrvName').textContent=MP.srvName; $('mpCodeTxt').textContent=code; $('mpCode').classList.remove('hidden'); }
+  catch(e){ mpLeave(); $('mpStatus').textContent='Could not start: '+(e&&e.message||e); } mpBusy=false; });
+$('mpCopy').addEventListener('click',()=>copyText(MP.code)); $('pCopy').addEventListener('click',()=>copyText(MP.code));
+$('mpStop').addEventListener('click',()=>{ mpLeave(); $('mpCode').classList.add('hidden'); });
+$('mpEnter').addEventListener('click',()=>{ $('mpCode').classList.add('hidden'); const v=$('mpWorld').value, w=worlds.find(x=>x.id===v); if(w){ selW=w.id; playWorld(w); } else createWorld('World '+(worlds.length+1),String((Math.random()*1e9)|0),GOPT_DEF); mpHostReady(); mpRenderPause(); });
+$('mpConnect').addEventListener('click',async()=>{ if(mpBusy) return; const code=$('mpCodeIn').value.trim().toUpperCase(); if(code.length<4){ $('mpStatus').textContent='Enter a server code'; return; } mpBusy=true; ls.set(MP_NAMEKEY,mpName()); $('mpStatus').textContent='Connecting…';
+  try{ const m=await mpJoin(code,mpName()); const rec=mpRecent().filter(r=>r.code!==code); rec.unshift({code,name:MP.srvName,t:Date.now()}); ls.set(MP_RECENT,JSON.stringify(rec.slice(0,5))); $('mp').classList.add('hidden'); mpGuestEnter(m); mpRenderPause(); toast('Joined '+MP.srvName,1800); }
+  catch(e){ $('mpStatus').textContent=(e&&e.message)||'Connection failed'; } mpBusy=false; });
 let curBiome=null, shOff=0, acc=0, last=performance.now(), frameN=0, fpsAcc=0, fps=0, curFov=S.fov, camDist=4, titleT=0;
 const tmpEye=new THREE.Vector3(), camPiv=new THREE.Vector3(); let hbS=0, camPivOk=false, zoomS=2.6, landDip=0, dipCur=0;
 function frame(now){
   requestAnimationFrame(frame);
-  let dt=(now-last)/1000; last=now; if(dt>0.25) dt=0.25; if(dt<0) dt=0; fpsAcc+=dt; frameN++; if(fpsAcc>=0.5){ fps=Math.round(frameN/fpsAcc); fpsAcc=0; frameN=0; }
+  let dt=(now-last)/1000; last=now; if(dt>0.25) dt=0.25; if(dt<0) dt=0; fpsAcc+=dt; frameN++; if(MP.on||MP.remote.size) mpTick(dt); /* v58 */ if(fpsAcc>=0.5){ fps=Math.round(frameN/fpsAcc); fpsAcc=0; frameN=0; }
   if(renderer.shadowMap.enabled&&frameN%2===0) renderer.shadowMap.needsUpdate=true; // v28: shadow map refreshed every 2nd frame
   if(state==='play'){ ensureAround(P.pos.x,P.pos.z,1); streamWorld(P.pos.x,P.pos.z,5); }
   if(state==='play'){ acc+=dt; let n=0; while(acc>=DT&&n<8){ tick(); acc-=DT; n++; } if(n>=8) acc=0; }
@@ -1898,7 +2035,7 @@ function frame(now){
     const ey=-0.52-Math.sin(pickK*Math.PI)*0.03+Math.sin(swingT*Math.PI*2)*0.05*(1-pk)-Math.abs(Math.cos(ph))*0.028*hb+sy2-off-dipCur*0.5-lagP*0.2+pk*0.04;
     const ez=-1.0-arc2*0.2-pk*0.16;
     fpArm.position.set(ex,ey,ez); fpArm.rotation.set(-arc*1.0+0.15-pk*0.3+lagP*0.35+Math.abs(Math.cos(ph))*0.02*hb,0.35-arc*0.45+lagY*0.6,arc*0.3+Math.sin(ph)*0.012*hb); }
-  if((debugOn||S.coords)&&state==='play'&&frameN%6===0){ $('debug').textContent=debugOn?`Luminout v57  ${fps} fps\nXYZ ${P.pos.x.toFixed(2)} / ${P.pos.y.toFixed(2)} / ${P.pos.z.toFixed(2)}\nspeed ${hs.toFixed(2)} m/s  ${P.onGround?'on ground':'in air'}${P.sprint?'  sprint':''}${P.crouch?'  crouch':''}\nlook ${(((P.yaw*180/Math.PI)%360+360)%360).toFixed(0)}° / ${(P.pitch*180/Math.PI).toFixed(0)}°\nblock ${target?`${target.x} ${target.y} ${target.z} · ${BL[target.b].name}`:'—'}\nbiome: ${(biomeAt(P.pos.x,P.pos.z)||{name:'void'}).name} (${(biomeAt(P.pos.x,P.pos.z)||{id:-1}).id+1}/${BIOMES.length})\nitems: ${items.length}`:`XYZ ${P.pos.x.toFixed(1)} / ${P.pos.y.toFixed(1)} / ${P.pos.z.toFixed(1)}`; }
+  if((debugOn||S.coords)&&state==='play'&&frameN%6===0){ $('debug').textContent=debugOn?`Luminout v58  ${fps} fps\nXYZ ${P.pos.x.toFixed(2)} / ${P.pos.y.toFixed(2)} / ${P.pos.z.toFixed(2)}\nspeed ${hs.toFixed(2)} m/s  ${P.onGround?'on ground':'in air'}${P.sprint?'  sprint':''}${P.crouch?'  crouch':''}\nlook ${(((P.yaw*180/Math.PI)%360+360)%360).toFixed(0)}° / ${(P.pitch*180/Math.PI).toFixed(0)}°\nblock ${target?`${target.x} ${target.y} ${target.z} · ${BL[target.b].name}`:'—'}\nbiome: ${(biomeAt(P.pos.x,P.pos.z)||{name:'void'}).name} (${(biomeAt(P.pos.x,P.pos.z)||{id:-1}).id+1}/${BIOMES.length})\nitems: ${items.length}`:`XYZ ${P.pos.x.toFixed(1)} / ${P.pos.y.toFixed(1)} / ${P.pos.z.toFixed(1)}`; }
   { const cx=state==='title'?SPAWN.x:rp.x, cy=state==='title'?SPAWN.y:rp.y, cz=state==='title'?SPAWN.z:rp.z, tx=(sun.shadow.camera.right-sun.shadow.camera.left)/sun.shadow.mapSize.x; /* v29: snap the shadow centre to whole shadow-map texels in light space → no shimmer while moving */
     const c=new THREE.Vector3(cx,cy,cz), u=Math.round(c.dot(SH_R)/tx)*tx, v=Math.round(c.dot(SH_U)/tx)*tx, w=c.dot(sunDir); c.copy(SH_R).multiplyScalar(u).addScaledVector(SH_U,v).addScaledVector(sunDir,w);
     sun.target.position.copy(c); sun.position.copy(c).addScaledVector(sunDir,70); sunFill.position.copy(sun.position); }
@@ -1920,7 +2057,7 @@ function renderPreview(){ const r=$('well').getBoundingClientRect(); if(r.width<
 applyRender(); genWorld(); P.pos.set(SPAWN.x,SPAWN.y,SPAWN.z); P.prev.copy(P.pos); defaultInv(); buildMesh(); renderInv(); refreshTitle();
 requestAnimationFrame(frame);
 
-window.__g={idx, get genStats(){ return {ms:genMs,n:genN}; }, hgt, get swingT(){ return swingT; }, ch, breakAt(x,y,z){ breakBlock({x,y,z,b:getB(x,y,z)}); }, bpApi:{BP_TIERS,mkBp,quickStack,takeAll,sortSlots,openBackpack,openChest,get eqRef(){return eqRef;},bpCap,chestCap}, spawnItemAt, crackPreview(x,y,z){ startMining({x,y,z,b:getB(x,y,z)}); }, canopies,chests,get openC(){return openC;},ids:{PLANKS,ROCK,DIRT,LEAVES,GRASS,TALLGRASS,TUFT,CHEST,LOG,PEBBLE,TREE,GRASSLAYER,WHITE,BUSH},isSolid,get target(){return target;}, get sel(){return sel;}, P,inv,WHITE,biomeAt,rebuildAt,items,getB,setB,buildMesh,raycast,lookDir,toggleInv,startGame,newWorld,saveWorld,loadWorld,addItem,countOf,selectSlot,tick,tiles,BL,TS,ch,sun,hemi,renderer,scene,camera,get composer(){return composer;},applyRender,
+window.__g={idx, get MP(){ return MP; }, get genStats(){ return {ms:genMs,n:genN}; }, hgt, get swingT(){ return swingT; }, ch, breakAt(x,y,z){ breakBlock({x,y,z,b:getB(x,y,z)}); }, bpApi:{BP_TIERS,mkBp,quickStack,takeAll,sortSlots,openBackpack,openChest,get eqRef(){return eqRef;},bpCap,chestCap}, spawnItemAt, crackPreview(x,y,z){ startMining({x,y,z,b:getB(x,y,z)}); }, canopies,chests,get openC(){return openC;},ids:{PLANKS,ROCK,DIRT,LEAVES,GRASS,TALLGRASS,TUFT,CHEST,LOG,PEBBLE,TREE,GRASSLAYER,WHITE,BUSH},isSolid,get target(){return target;}, get sel(){return sel;}, P,inv,WHITE,biomeAt,rebuildAt,items,getB,setB,buildMesh,raycast,lookDir,toggleInv,startGame,newWorld,saveWorld,loadWorld,addItem,countOf,selectSlot,tick,tiles,BL,TS,ch,sun,hemi,renderer,scene,camera,get composer(){return composer;},applyRender,
   get target(){return target;}, get sel(){return sel;}, get cursor(){return cursor;}, set cursor(v){cursor=v;renderInv();}, get state(){return state;}, get view(){return view;}, setView(v){view=v; updateLockUI();}, get shiftLock(){return shiftLock;}, toggleShiftLock, freeCam, get camZoom(){return camZoom;}, pvMouse, get moveTarget(){return moveTarget;}, tapMove, applySettings, get shOff(){return shOff;}, buildLegacyRoom(){ // test fixture: the old v3 room geometry at 0..15, used only by the regression tests
     for(let x=0;x<16;x++)for(let z=0;z<16;z++)for(let y=0;y<3;y++) setB(x,y,z,WHITE);
     const Pl=(x,z,h)=>{ for(let y=3;y<3+h;y++) setB(x,y,z,WHITE); }; [[3,3,6],[12,3,6],[3,8,6],[12,8,6]].forEach(([x,z,h])=>Pl(x,z,h));
